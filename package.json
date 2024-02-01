@@ -1,0 +1,20 @@
+{
+  "name": "portfolio",
+  "version": "1.0.0",
+  "description": "The 'portfolio' back-end API, version 1.0.0, authored by Amine Chairi, is a robust and flexible server-side application designed to support and enhance various functionalities related to a portfolio or personal website. This API serves as the backbone for managing and retrieving data associated with your portfolio, making it a crucial component for dynamic and data-driven web experiences.",
+  "main": "index.js",
+  "scripts": {
+    "start:dev": "nodemon index.js"
+  },
+  "author": "Amine Chairi",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.1",
+    "express": "^4.18.2",
+    "express-async-handler": "^1.2.0",
+    "express-validator": "^7.0.1",
+    "mongoose": "^8.1.1",
+    "morgan": "^1.10.0",
+    "slugify": "^1.6.6"
+  }
+}

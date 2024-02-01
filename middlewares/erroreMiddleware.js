@@ -1,0 +1,52 @@
+// const ApiError = require("../utils/apiError");
+
+const sendErroreForDev = (err, res) => {
+  return res.status(err.statusCode).json({ 
+    status: err.status,
+    message: err.message,
+    err: err,
+    stack: err.stack,
+  });
+};
+
+const sendErroreForProd = (err, res) => {
+  return res.status(err.statusCode).json({ 
+    status: err.status,
+    message: err.message,
+    error: err.error,
+  });
+};
+
+// const handleJwtInvalidSignature = () => {
+//   return new ApiError(`Invalid token plesse login again...`, 401);
+// };
+
+// const handleJwtExpired = () => {
+//     return new ApiError(`Expired token plesse login again...`, 401);
+// };
+
+const globalErrore = (err, req, res, next) => {
+
+  err.statusCode = err.statusCode || 500;
+  err.status = err.status || `error`;
+  err.error = err.error;
+
+  if (process.env.NODE_ENV === `development`) {
+
+    sendErroreForDev(err, res);
+
+  } else {
+    // if (err.name === "JsonWebTokenError") {
+    //   err = handleJwtInvalidSignature();
+    // }
+    // if (err.name === "TokenExpiredError") {
+    //   err = handleJwtExpired();
+    // }
+
+    sendErroreForProd(err, res);
+
+  };
+
+};
+
+module.exports = globalErrore;
