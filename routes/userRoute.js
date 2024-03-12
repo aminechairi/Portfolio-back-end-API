@@ -1,15 +1,17 @@
 const express = require(`express`);
 
 const {
-  createUserValidator,
-  deleteUserValidator,
   createUserValidatorMiddleware,
-  updateUserValidator
-} = require(".././utils/validators/userValidator");
+  createUserValidator,
+  getUserByIDValidator,
+  updateUserValidator,
+  deleteUserValidator
+} = require("../utils/validators/userValidator");
 
 const {
   createUser,
   getUser,
+  getUserByID,
   updateUser,
   deleteUser
 } = require("../services/userServices");
@@ -29,7 +31,10 @@ router
 
   router
   .route("/:id")
-  .put(
+  .get(
+    getUserByIDValidator,
+    getUserByID
+  ).put(
     updateUserValidator,
     updateUser
   ).delete(

@@ -1,10 +1,10 @@
 const { check } = require("express-validator");
-const validatorMiddleware = require("../../middlewares/validatorMiddleware");
 const asyncHandler = require("express-async-handler");
 const slugify = require("slugify");
 
+const validatorMiddleware = require("../../middlewares/validatorMiddleware");
 const userModel = require("../../models/userModel");
-const ApiError = require("../../utils/apiError");
+const ApiError = require("../apiError");
 const errorObject = require('../errorObject');
 
 exports.createUserValidatorMiddleware = asyncHandler(async (req, res, next) => {
@@ -12,7 +12,6 @@ exports.createUserValidatorMiddleware = asyncHandler(async (req, res, next) => {
 
   if (user) {
     const message = `You cannot create more then one user.`;
-
     throw next(
       new ApiError(message, errorObject(
         undefined,
@@ -33,8 +32,8 @@ exports.createUserValidator = [
     .isString()
     .withMessage("First name must be of type string.")
     .trim()
-    .isLength({ min: 3 })
-    .withMessage("First name must be at least 3 characters.")
+    .isLength({ min: 2 })
+    .withMessage("First name must be at least 2 characters.")
     .isLength({ max: 16 })
     .withMessage("First name cannot exceed 16 characters."),
 
@@ -44,14 +43,14 @@ exports.createUserValidator = [
     .isString()
     .withMessage("Last name must be of type string.")
     .trim()
-    .isLength({ min: 3 })
-    .withMessage("Last name must be at least 3 characters.")
+    .isLength({ min: 2 })
+    .withMessage("Last name must be at least 2 characters.")
     .isLength({ max: 16 })
     .withMessage("Last name cannot exceed 16 characters.")
     .custom(async (_, { req }) => {
       // Add slug property in req.bosy
-      const firstName = req.body.firstName;
-      const lastName = req.body.lastName;
+      const { firstName } = req.body;
+      const { lastName } = req.body;
 
       const slug = slugify(`${firstName} ${lastName}`, { lower: true });
       req.body.slug = slug;
@@ -94,7 +93,7 @@ exports.createUserValidator = [
       });
 
       if (user) {
-        throw new Error("Email address is already in use.");
+        throw new Error("This email already used.");
       }
       return true;
     }),
@@ -148,11 +147,15 @@ exports.createUserValidator = [
   validatorMiddleware,
 ];
 
+exports.getUserByIDValidator = [
+  check("id")
+    .isMongoId()
+    .withMessage("Invalid user ID format."),
 
-
+  validatorMiddleware,
+];
 
 exports.updateUserValidator = [
-
   check("id")
     .isMongoId()
     .withMessage("Invalid user ID format."),
@@ -162,12 +165,13 @@ exports.updateUserValidator = [
     .isString()
     .withMessage("First name must be of type string.")
     .trim()
-    .isLength({ min: 3 })
-    .withMessage("First name must be at least 3 characters.")
+    .isLength({ min: 2 })
+    .withMessage("First name must be at least 2 characters.")
     .isLength({ max: 16 })
     .withMessage("First name cannot exceed 16 characters.")
     .custom((_, { req }) => {
-      const lastName = req.body.lastName;
+      const { lastName } = req.body;
+
       if (!lastName) {
         throw new Error("Please write last name.");
       }
@@ -179,8 +183,8 @@ exports.updateUserValidator = [
     .isString()
     .withMessage("Last name must be of type string.")
     .trim()
-    .isLength({ min: 3 })
-    .withMessage("Last name must be at least 3 characters.")
+    .isLength({ min: 2 })
+    .withMessage("Last name must be at least 2 characters.")
     .isLength({ max: 16 })
     .withMessage("Last name cannot exceed 16 characters.")
     .custom((_, { req }) => {
@@ -192,8 +196,8 @@ exports.updateUserValidator = [
     })
     .custom(async (_, { req }) => {
       // Add slug property in req.bosy
-      const firstName = req.body.firstName;
-      const lastName = req.body.lastName;
+      const { firstName } = req.body;
+      const { lastName } = req.body;
 
       const slug = slugify(`${firstName} ${lastName}`, { lower: true });
       req.body.slug = slug;
@@ -233,7 +237,7 @@ exports.updateUserValidator = [
   //     });
 
   //     if (user) {
-  //       throw new Error("Email address is already in use.");
+  //       throw new Error("This email already used.");
   //     }
   //     return true;
   //   }),
@@ -283,9 +287,6 @@ exports.updateUserValidator = [
 
   validatorMiddleware,
 ];
-
-
-
 
 exports.deleteUserValidator = [
   check("id")
