@@ -1,7 +1,29 @@
 const { check } = require("express-validator");
-const validatorMiddleware = require("../../middlewares/validatorMiddleware");
+const asyncHandler = require("express-async-handler");
 
+const validatorMiddleware = require("../../middlewares/validatorMiddleware");
 const socialMediaModel = require("../../models/socialMediaModel");
+const ApiError = require("../apiError");
+const errorObject = require('../errorObject');
+
+exports.createSocialMediaValidatorMiddleware = asyncHandler(async (req, res, next) => {
+  const length = await socialMediaModel.countDocuments();
+  const max = 6;
+
+  if (length >= max) {
+    const message = `You cannot create more then ${max} social media.`;
+    throw next(
+      new ApiError(message, errorObject(
+        undefined,
+        message,
+        undefined,
+        undefined
+      ), 404)
+    );
+  };
+
+  next();
+});
 
 exports.createSocialMediaValidator = [
   check("name")

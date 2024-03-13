@@ -1,6 +1,7 @@
 const express = require(`express`);
 
 const {
+  createSocialMediaValidatorMiddleware,
   createSocialMediaValidator,
   getSocialMediaByIDValidator,
   updateSocialMediaValidator,
@@ -23,6 +24,7 @@ router
     getSocialMedias,
   )
   .post(
+    createSocialMediaValidatorMiddleware,
     createSocialMediaValidator,
     createSocialMedia
   );
