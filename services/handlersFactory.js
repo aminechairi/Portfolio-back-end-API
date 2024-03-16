@@ -1,7 +1,14 @@
 const asyncHandler = require("express-async-handler");
+const {
+  // PutObjectCommand,
+  DeleteObjectCommand,
+} = require("@aws-sdk/client-s3");
+const s3Client = require("../config/s3Client");
 
 const ApiError = require("../utils/apiError");
 const errorObject = require("../utils/errorObject");
+
+const awsBuckName = process.env.AWS_BUCKET_NAME;
 
 exports.createOne = (model) =>
   asyncHandler(async (req, res) => {
@@ -42,25 +49,50 @@ exports.getOne = (model, name) =>
 exports.updateOne = (model, name) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
+    const { body } = req;
 
-    const document = await model.findByIdAndUpdate({ _id: id }, req.body, {
-      new: true,
-    });
+    if (body.image) {
+      let document = await model.findByIdAndUpdate(id, body);
 
-    if (!document) {
-      const message = `No ${name} for this ID ${id}.`;
+      if (!document) {
+        const message = `No ${name} for this ID ${id}.`;
 
-      throw next(
-        new ApiError(message, errorObject(id, message, "id", "params"), 404)
-      );
+        throw next(
+          new ApiError(message, errorObject(id, message, "id", "params"), 404)
+        );
+      }
+
+      const imageUrl = `${document.image}`;
+      const baseUrl = `${process.env.AWS_BASE_URL}/`;
+      const restOfUrl = imageUrl.replace(baseUrl, "");
+      const key = restOfUrl.slice(0, restOfUrl.indexOf("?"));
+
+      const params = {
+        Bucket: awsBuckName,
+        Key: key,
+      };
+
+      const command = new DeleteObjectCommand(params);
+      await s3Client.send(command);
+
+      document = await model.find({ _id: id });
+      res.status(200).json({ data: document[0] });
+    } else {
+      const document = await model.findByIdAndUpdate(id, body, { new: true });
+
+      if (!document) {
+        const message = `No ${name} for this ID ${id}.`;
+
+        throw next(
+          new ApiError(message, errorObject(id, message, "id", "params"), 404)
+        );
+      }
+
+      res.status(200).json({ data: document });
     }
-
-    res.status(200).json({
-      data: document,
-    });
   });
 
-exports.deleteOne = (model, name) =>
+exports.deleteOne = (model, name, containsImage = false) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
 
@@ -73,7 +105,22 @@ exports.deleteOne = (model, name) =>
       );
     }
 
-    res.status(200).json({
-      data: document,
-    });
+    if (!containsImage) {
+      res.status(200).json({ data: document });
+    } else {
+      const imageUrl = `${document.image}`;
+      const baseUrl = `${process.env.AWS_BASE_URL}/`;
+      const restOfUrl = imageUrl.replace(baseUrl, "");
+      const key = restOfUrl.slice(0, restOfUrl.indexOf("?"));
+
+      const params = {
+        Bucket: awsBuckName,
+        Key: key,
+      };
+
+      const command = new DeleteObjectCommand(params);
+      await s3Client.send(command);
+
+      res.status(200).json({ data: document });
+    }
   });

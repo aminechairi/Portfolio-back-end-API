@@ -3,12 +3,16 @@ const express = require(`express`);
 const {
   createSocialMediaValidatorMiddleware,
   createSocialMediaValidator,
+  createSocialMediaImageValidator,
   getSocialMediaByIDValidator,
   updateSocialMediaValidator,
+  updateSocialMediaImageValidator,
   deleteSocialMediaValidator
 } = require("../utils/validators/socialMediaValidator");
 
 const {
+  uploadImage,
+  imageProcessing,
   createSocialMedia,
   getSocialMedias,
   getSocialMediaByID,
@@ -24,8 +28,11 @@ router
     getSocialMedias,
   )
   .post(
+    uploadImage,
     createSocialMediaValidatorMiddleware,
     createSocialMediaValidator,
+    createSocialMediaImageValidator,
+    imageProcessing,
     createSocialMedia
   );
 
@@ -35,7 +42,10 @@ router
     getSocialMediaByIDValidator,
     getSocialMediaByID
   ).put(
+    uploadImage,
     updateSocialMediaValidator,
+    updateSocialMediaImageValidator,
+    imageProcessing,
     updateSocialMedia
   ).delete(
     deleteSocialMediaValidator,
